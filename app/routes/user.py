@@ -32,7 +32,10 @@ def login_user(
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    return {"user": user, "access_token": access_token}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+    }
 
 
 @router.get("/me", response_model=UserInDB)
