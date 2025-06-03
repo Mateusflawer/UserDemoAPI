@@ -7,8 +7,8 @@ from app.services.user import (
     get_user,
     update_user,
     delete_user,
-    authenticate_user
-    )
+    authenticate_user,
+)
 from app.dependencies.auth import get_current_user
 from fastapi.security import OAuth2PasswordRequestForm
 from ..core.sucurity import create_access_token
@@ -25,16 +25,14 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 def login_user(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
-    ):
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+):
     user = authenticate_user(db, form_data.username, form_data.password)
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.email},
-        expires_delta=access_token_expires
-        )
-    return {"access_token": access_token, "token_type": "bearer"}
+        data={"sub": user.email}, expires_delta=access_token_expires
+    )
+    return {"user": user, "access_token": access_token}
 
 
 @router.get("/me", response_model=UserInDB)
@@ -46,11 +44,12 @@ def read_user_me(current_user: UserInDB = Depends(get_current_user)):
 def read_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: UserInDB = Depends(get_current_user)
-    ):
+    current_user: UserInDB = Depends(get_current_user),
+):
     if current_user.id != user_id:
         raise HTTPException(
-            status_code=403, detail="Not authorized to access this user")
+            status_code=403, detail="Not authorized to access this user"
+        )
     db_user = get_user(db, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -62,11 +61,12 @@ def update_user_route(
     user_id: int,
     user: UserUpdate,
     db: Session = Depends(get_db),
-    current_user: UserInDB = Depends(get_current_user)
-    ):
+    current_user: UserInDB = Depends(get_current_user),
+):
     if current_user.id != user_id:
         raise HTTPException(
-            status_code=403, detail="Not authorized to update this user")
+            status_code=403, detail="Not authorized to update this user"
+        )
     return update_user(db, user_id, user)
 
 
@@ -74,9 +74,10 @@ def update_user_route(
 def delete_user_route(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: UserInDB = Depends(get_current_user)
-    ):
+    current_user: UserInDB = Depends(get_current_user),
+):
     if current_user.id != user_id:
         raise HTTPException(
-            status_code=403, detail="Not authorized to delete this user")
+            status_code=403, detail="Not authorized to delete this user"
+        )
     return delete_user(db, user_id)
